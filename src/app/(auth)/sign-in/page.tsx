@@ -14,9 +14,9 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import axios from "axios";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
+import { toast } from "react-hot-toast";
 
 const Page = () => {
   const router = useRouter();
@@ -29,26 +29,19 @@ const Page = () => {
   });
 
   const onSubmit = async (values: z.infer<typeof signInSchema>) => {
-    signIn("credentials", values)
-      .then((res) => {
-        console.log(res);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+    const result = await signIn("credentials", {
+      redirect: false,
+      username: values.username,
+      password: values.password,
+    });
 
-    // axios
-    //   .post("/api/signin", values)
-    //   .then((response) => {
-    //     if (response.data.success) {
-    //       router.push("/dashboard");
-    //     }
-    //   })
-    //   .catch((error) => {
-    //     console.log("---error---");
-    //     console.log(error.response.data.message);
-    //     console.log("---error---");
-    //   });
+    if (result?.error) {
+      console.error("Sign in failed", result.error);
+      toast.error(result.error);
+    } else {
+      toast.success("Signed in successfully");
+      router.push("/dashboard");
+    }
   };
 
   return (

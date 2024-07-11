@@ -3,7 +3,7 @@ import React from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { signInSchema } from "@/schema/signInSchema";
+import { signUpSchema } from "@/schema/signUpSchema";
 import {
   FormControl,
   FormDescription,
@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import axios from "axios";
 import { useRouter } from "next/navigation";
-import { signUpSchema } from "@/schema/signUpSchema";
+import { toast } from "react-hot-toast";
 
 const Page = () => {
   const router = useRouter();
@@ -29,19 +29,19 @@ const Page = () => {
     },
   });
 
-  const onSubmit = async (values: z.infer<typeof signInSchema>) => {
-    axios
-      .post("/api/signup", values)
-      .then((response) => {
-        if (response.data.success) {
-          router.push("/dashboard");
-        }
-      })
-      .catch((error) => {
-        console.log("---error---");
-        console.log(error.response.data.message);
-        console.log("---error---");
-      });
+  const onSubmit = async (values: z.infer<typeof signUpSchema>) => {
+    try {
+      const response = await axios.post("/api/auth/signup", values);
+      toast.success(response.data.message);
+      router.push("/signin"); // Redirect to sign-in page after successful registration
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response) {
+        console.log(error);
+        toast.error(error.response.data.error || "Sign-up failed");
+      } else {
+        toast.error("Sign-up failed");
+      }
+    }
   };
 
   return (
